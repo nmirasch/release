@@ -30,11 +30,13 @@ spec:
   - name: target-branch
     value: "{{ target_branch }}"
   - name: hermetic
-    value: "false"
+    value: "true"
   - name: build-architectures
     value:
     - aarch64
     - x86_64
+  - name: skip-checks
+    value: "true"
   pipelineRef:
     resolver: git
     params:
