@@ -37,6 +37,8 @@ spec:
     value:
     - aarch64
     - x86_64
+  - name: path-context
+    value: rpms/microshift-gitops
   pipelineRef:
     resolver: git
     params:

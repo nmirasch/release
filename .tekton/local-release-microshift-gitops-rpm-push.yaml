@@ -23,6 +23,8 @@ spec:
     value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm:{{revision}}
   - name: package-name
     value: microshift-gitops
+  - name: path-context
+    value: rpms/microshift-gitops
   - name: git-url
     value: "{{ source_url }}"
   - name: revision
