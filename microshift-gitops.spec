@@ -6,8 +6,7 @@
 %global microshift_gitops_version 0.0.1
 %global microshift_gitops_release %(echo 1.0.0 | sed -e s/rhel-9-//g)
 %global argocdtag 2.14.15
-%global source_dir argo-cd-%{argocdtag}
-%global source_tar %{argocdtag}.tar.gz
+%global source_dir argo-cd
 
 Name:           %{package_name}
 Version:        %{microshift_gitops_version}
@@ -16,7 +15,6 @@ Summary:        The %{product_name} package provides the required kustomize mani
 License:        ASL 2.0
 URL:            https://github.com/argoproj/argo-cd/releases/tag/v{argocdtag}
 
-Source0:        %{source_tar}
 BuildRequires:  sed
 Provides:       %{package_name}
 Obsoletes:      %{package_name}
