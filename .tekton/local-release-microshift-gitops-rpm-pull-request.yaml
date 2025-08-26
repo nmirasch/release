@@ -37,17 +37,6 @@ spec:
     value:
     - aarch64
     - x86_64
-  - name: pre-build-script
-    value: |
-        set -ex
-        echo "--- Preparing workspace for microshift-gitops RPM build ---"
-        
-        # The symlink errors come from the 'helm' submodule, which is not needed for this RPM.
-        # We will remove the entire directory that contains the problematic test data.
-        echo "Removing directories with problematic symlinks..."
-        rm -rfv sources/helm
-        
-        echo "Workspace cleaned. Proceeding with build."
   pipelineRef:
     resolver: git
     params:
