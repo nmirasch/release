@@ -32,7 +32,7 @@ spec:
   - name: target-branch
     value: "{{ target_branch }}"
   - name: hermetic
-    value: "true"
+    value: "false"
   - name: build-architectures
     value:
     - aarch64
