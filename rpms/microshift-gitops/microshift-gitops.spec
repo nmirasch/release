@@ -37,8 +37,15 @@ An example of such osbuilder blueprints for x86_64 and aarch64 platforms are
 also included in the package.
 
 %prep
+mv sources sources.d
 %setup -q -n %{source_dir}
+rm -rf %{_builddir}/%{name}-%{version}
+# Create the top-level directory rpmbuild expects
+mkdir -p %{_builddir}/%{name}-%{version}
 
+# Copy your source code from its current location into the build directory.
+# This example assumes your code is in a 'src' directory next to your SPECS folder.
+cp -r %{_sourcedir}/* %{_builddir}/%{name}-%{version}/
 
 %build
 
