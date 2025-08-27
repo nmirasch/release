@@ -6,9 +6,8 @@
 %global microshift_gitops_version 0.0.1
 %global microshift_gitops_release %(echo 1.0.0 | sed -e s/rhel-9-//g)
 %global argocdtag 2.14.15
-%global source_dir argo-cd
-#%global source_dir argo-cd-%{argocdtag}
-#%global source_tar argo-cd-%{argocdtag}.tar.gz
+%global source_dir argo-cd-%{argocdtag}
+%global source_tar argo-cd-%{argocdtag}.tar.gz
 
 Name:           %{package_name}
 Version:        %{microshift_gitops_version}
@@ -17,7 +16,7 @@ Summary:        The %{product_name} package provides the required kustomize mani
 License:        ASL 2.0
 URL:            https://github.com/argoproj/argo-cd/releases/tag/v{argocdtag}
 
-#Source0:        %{source_tar}
+Source0:        %{source_tar}
 BuildRequires:  sed
 Provides:       %{package_name}
 Obsoletes:      %{package_name}
@@ -38,14 +37,7 @@ An example of such osbuilder blueprints for x86_64 and aarch64 platforms are
 also included in the package.
 
 %prep
-# Clean the build directory (optional but good practice)
-rm -rf %{_builddir}/%{name}-%{version}
-# Create the top-level directory rpmbuild expects
-mkdir -p %{_builddir}/%{name}-%{version}
-
-# Copy your source code from its current location into the build directory.
-# This example assumes your code is in a 'src' directory next to your SPECS folder.
-cp -r %{_sourcedir}/* %{_builddir}/%{name}-%{version}/
+%setup -q -n %{source_dir}
 
 
 %build
