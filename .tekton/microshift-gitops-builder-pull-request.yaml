@@ -586,8 +586,6 @@ spec:
       optional: true
     - name: netrc
       optional: true
-  taskRunTemplate:
-    serviceAccountName: build-pipeline-release-fbd2f
   workspaces:
   - name: git-auth
     secret:
