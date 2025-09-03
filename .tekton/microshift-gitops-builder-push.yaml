@@ -8,8 +8,8 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "GITOPS-6959_microshift-gitops_rpm" && ( "rpms/microshift-gitops/***".pathChanged()
-      || ".tekton/release-fbd2f-push.yaml".pathChanged() )
+      == "GITOPS-6959_microshift-gitops_rpm" && ( "rpms/microshift-gitops/Dockerfile".pathChanged()
+      || ".tekton/microshift-gitops-builder-push.yaml".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: testing-rpms-builds
