@@ -46,6 +46,8 @@ spec:
     - x86_64
   - name: path-context
     value: rpms/microshift-gitops
+  - name: script-environment-image
+    value: "quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/release-fbd2f:latest"
   - name: pre-build-script-content
     value: |
       #!/usr/bin/env bash

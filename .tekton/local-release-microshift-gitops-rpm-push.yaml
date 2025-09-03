@@ -43,6 +43,8 @@ spec:
     value:
     - aarch64
     - x86_64
+  - name: script-environment-image
+    value: "quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/release-fbd2f:latest"
   - name: pre-build-script-content
     value: |
       #!/usr/bin/env bash
