@@ -3,11 +3,11 @@
 
 %global package_name microshift-gitops
 %global product_name OpenShift GitOps (ArgoCD) components for MicroShift
-%global microshift_gitops_version REPLACE_CI_X_VERSION.REPLACE_CI_Y_VERSION.REPLACE_CI_Z_VERSION
-%global microshift_gitops_release %(echo REPLACE_CI_SPEC_RELEASE | sed -e s/rhel-9-//g)
+%global microshift_gitops_version REPLACE_MICROSHIFT_GITOPS_RELEASE
+%global microshift_gitops_release REPLACE_MICROSHIFT_GITOPS_RELEASE
 %global argocdtag REPLACE_CI_ARGO_CD_UPSTREAM_TAG
 %global source_dir argo-cd-%{argocdtag}
-%global source_tar argo-cd-%{argocdtag}.tar.gz
+%global source_tar argo-cd-sources.tar.gz
 
 Name:           %{package_name}
 Version:        %{microshift_gitops_version}
@@ -37,7 +37,6 @@ An example of such osbuilder blueprints for x86_64 and aarch64 platforms are
 also included in the package.
 
 %prep
-mv sources sources.d
 %setup -q -n %{source_dir}
 
 %build
@@ -106,10 +105,10 @@ EOF
 cat <<EOF >>"manifests/microshift-gitops/kustomization.yaml"
 images:
   - name: quay.io/argoproj/argocd
-    newName: registry.redhat.io/openshift-gitops-1/argocd-rhel9
+    newName: REPLACE_ARGO_CD_IMAGE_URL
     digest: "REPLACE_ARGO_CD_CONTAINER_SHA_ARM"
   - name: redis
-    newName: registry.redhat.io/rhel9/redis-6
+    newName: REPLACE_REDIS_IMAGE_URL
     digest: "REPLACE_REDIS_CONTAINER_SHA_ARM"
 EOF
 %endif
@@ -118,10 +117,10 @@ EOF
 cat <<EOF >>"manifests/microshift-gitops/kustomization.yaml"
 images:
   - name: quay.io/argoproj/argocd
-    newName: registry.redhat.io/openshift-gitops-1/argocd-rhel9
+    newName: REPLACE_ARGO_CD_IMAGE_URL
     digest: "REPLACE_ARGO_CD_CONTAINER_SHA_X86"
   - name: redis
-    newName: registry.redhat.io/rhel9/redis-6
+    newName: REPLACE_REDIS_IMAGE_URL
     digest: "REPLACE_REDIS_CONTAINER_SHA_X86"
 EOF
 %endif
@@ -134,8 +133,8 @@ cat <<EOF >"microshift-assets/release-gitops-arm64.json"
     "base": "REPLACE_ARGO_CD_VERSION"
   },
   "images": {
-    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@REPLACE_ARGO_CD_CONTAINER_SHA_ARM",
-    "redis": "registry.redhat.io/rhel9/redis-6@REPLACE_REDIS_CONTAINER_SHA_ARM"
+    "openshift-gitops-argocd": "REPLACE_ARGO_CD_IMAGE_URL@REPLACE_ARGO_CD_CONTAINER_SHA_ARM",
+    "redis": "REPLACE_REDIS_IMAGE_URL@REPLACE_REDIS_CONTAINER_SHA_ARM"
   }
 }
 EOF
@@ -146,8 +145,8 @@ cat <<EOF >"microshift-assets/release-gitops-x86_64.json"
     "base": "REPLACE_ARGO_CD_VERSION"
   },
   "images": {
-    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@REPLACE_ARGO_CD_CONTAINER_SHA_X86",
-    "redis": "registry.redhat.io/rhel9/redis-6@REPLACE_REDIS_CONTAINER_SHA_X86"
+    "openshift-gitops-argocd": "REPLACE_ARGO_CD_IMAGE_URL@REPLACE_ARGO_CD_CONTAINER_SHA_X86",
+    "redis": "REPLACE_REDIS_IMAGE_URL@REPLACE_REDIS_CONTAINER_SHA_X86"
   }
 }
 EOF

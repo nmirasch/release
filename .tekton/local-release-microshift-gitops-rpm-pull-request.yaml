@@ -9,7 +9,8 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "GITOPS-6959_microshift-gitops_rpm"
+      == "GITOPS-6959_microshift-gitops_rpm" && ( "rpms/microshift-gitops/***".pathChanged() || ".tekton/local-release-microshift-gitops-rpm-pull-request.yaml".pathChanged()
+      )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: testing-rpms-builds
@@ -49,7 +50,7 @@ spec:
     resolver: git
     params:
     - name: url
-      value: "https://github.com/konflux-ci/rpmbuild-pipeline.git"
+      value: "https://github.com/nmirasch/rpmbuild-pipeline.git"
     - name: revision
       value: main
     - name: pathInRepo
