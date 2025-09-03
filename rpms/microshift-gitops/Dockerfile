@@ -1,4 +1,4 @@
-# Copyright 2024 Red Hat
+# Copyright 2025 Red Hat
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,19 +20,22 @@ FROM registry.access.redhat.com/ubi8/ubi
 RUN dnf install -y \
     rpm-build \
     curl \
-    yq \
     jq \
     sed \
     gawk \
-    tar && \
-
+    tar \
+    skopeo && \
+    # Since yq is not in the default repos, download the binary directly
+    curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o /usr/bin/yq && \
+    # Make the downloaded binary executable
+    chmod +x /usr/bin/yq && \
     dnf clean all
 
 WORKDIR /workspace
 
 COPY . .
 
-CMD ["/workspace/pre-build-script.sh"]
+CMD ["/workspace/rpms/microshift-gitops/generic-prebuild-script.sh"]
 
 LABEL \
     name="openshift-gitops-1/microshift-gitops-rpm-rhel8" \
