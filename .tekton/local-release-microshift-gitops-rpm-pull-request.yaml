@@ -46,6 +46,45 @@ spec:
     - x86_64
   - name: path-context
     value: rpms/microshift-gitops
+  - name: pre-build-script-content
+    value: |
+      #!/usr/bin/env bash
+      set -euxo pipefail
+      
+      echo "--- Preparing to generate spec and sources using Skopeo ---"
+      
+      mkdir -p original-repo
+      skopeo copy "oci-archive:$(params.source-artifact)" "dir:./original-repo"
+      echo "Original repo extracted using Skopeo."
+      
+      ./generic-pre-build-script.sh
+      cd ..
+      echo "Generator script executed successfully."
+      
+      # 3. Stage the new source artifact in a clean 'workdir'
+      mkdir workdir
+      echo "Staging new artifact in ./workdir"
+      
+      cp original-repo/rpms/microshift-gitops/microshift-gitops.spec ./workdir/
+      cp original-repo/argo-cd-sources.tar.gz ./workdir/
+      
+      cd workdir
+      sha512sum *.tar.gz > sources
+      cat sources
+      cd ..
+      echo "'sources' file created."
+      
+      MODIFIED_ARTIFACT_URL="$(params.ociStorage).sources:pre-build-$(date +%s)"
+      
+      skopeo copy "dir:./workdir" "docker://${MODIFIED_ARTIFACT_URL}" --digestfile digest.txt
+      
+      REPO_URL=$(echo "${MODIFIED_ARTIFACT_URL}" | cut -d: -f1)
+      NEW_DIGEST=$(cat digest.txt)
+      NEW_ARTIFACT_WITH_DIGEST="${REPO_URL}@${NEW_DIGEST}"
+      
+      echo "Pushed new source artifact to: ${NEW_ARTIFACT_WITH_DIGEST}"
+      
+      echo -n "${NEW_ARTIFACT_WITH_DIGEST}" | tee $(results.manipulated-source-artifact.path)
   pipelineRef:
     resolver: git
     params:
