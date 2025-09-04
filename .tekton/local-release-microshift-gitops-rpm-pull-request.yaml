@@ -96,6 +96,8 @@ spec:
       value: main
     - name: pathInRepo
       value: pipeline/build-rpm-package.yaml
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-release-fbd2f
   workspaces:
   - name: source
     persistentVolumeClaim:
