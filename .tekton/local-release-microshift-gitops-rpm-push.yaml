@@ -8,8 +8,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "GITOPS-6959_microshift-gitops_rpm" && ( "rpms/microshift-gitops/***".pathChanged() || ".tekton/local-release-microshift-gitops-rpm-push.yaml".pathChanged()
-      )
+      == "GITOPS-6959_microshift-gitops_rpm"
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: testing-rpms-builds
@@ -43,47 +42,23 @@ spec:
     value:
     - aarch64
     - x86_64
-  - name: script-environment-image
-    value: "quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/release-fbd2f@sha256:2b5579ac78772db182b44038fa62cc6bfb5e2e72cee409388fbde86c9c65d0b1"
+  - name: pre-build-script-image
+    value: "registry.access.redhat.com/ubi9/ubi-minimal:latest"
   - name: pre-build-script-content
     value: |
       #!/usr/bin/env bash
       set -euxo pipefail
       
-      echo "--- Preparing to generate spec and sources using Skopeo ---"
+      echo "--- Init script content ---"
+      # ./rpms/microshift-gitops/generic-pre-build-script.sh
+      ls -l
+      echo "--- cat microshift-gitops.spec ---"
       
-      mkdir -p original-repo
-      skopeo copy "oci-archive:$(params.source-artifact)" "dir:./original-repo"
-      echo "Original repo extracted using Skopeo."
+      mv ./rpms/microshift-gitops/microshift-gitops.spec .
+      mv ./rpms/microshift-gitops/argo-cd-sources.tar.gz .
       
-      ./generic-pre-build-script.sh
-      cd ..
-      echo "Generator script executed successfully."
-      
-      # 3. Stage the new source artifact in a clean 'workdir'
-      mkdir workdir
-      echo "Staging new artifact in ./workdir"
-      
-      cp original-repo/rpms/microshift-gitops/microshift-gitops.spec ./workdir/
-      cp original-repo/argo-cd-sources.tar.gz ./workdir/
-      
-      cd workdir
-      sha512sum *.tar.gz > sources
-      cat sources
-      cd ..
-      echo "'sources' file created."
-      
-      MODIFIED_ARTIFACT_URL="$(params.ociStorage).sources:pre-build-$(date +%s)"
-      
-      skopeo copy "dir:./workdir" "docker://${MODIFIED_ARTIFACT_URL}" --digestfile digest.txt
-      
-      REPO_URL=$(echo "${MODIFIED_ARTIFACT_URL}" | cut -d: -f1)
-      NEW_DIGEST=$(cat digest.txt)
-      NEW_ARTIFACT_WITH_DIGEST="${REPO_URL}@${NEW_DIGEST}"
-      
-      echo "Pushed new source artifact to: ${NEW_ARTIFACT_WITH_DIGEST}"
-      
-      echo -n "${NEW_ARTIFACT_WITH_DIGEST}" | tee $(results.manipulated-source-artifact.path)
+      cat microshift-gitops.spec
+      echo "--- End script content ---"
   pipelineRef:
     resolver: git
     params:
@@ -94,9 +69,9 @@ spec:
     - name: pathInRepo
       value: pipeline/build-rpm-package.yaml
   taskRunTemplate:
-    serviceAccountName: build-pipeline-release-fbd2f
+    serviceAccountName: local-release-microshift-gitops-rpm
   workspaces:
-  - name: source
+  - name: sources
     persistentVolumeClaim:
       claimName: "{{pvc_name}}"
   - name: git-auth
