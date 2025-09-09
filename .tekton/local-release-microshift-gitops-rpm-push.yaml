@@ -19,7 +19,7 @@ metadata:
 spec:
   params:
   - name: ociStorage
-    value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm:{{revision}}
+    value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/local-release-microshift-gitops-rpm:{{revision}}
   - name: package-name
     value: microshift-gitops
   - name: context
