@@ -64,7 +64,7 @@ spec:
     - name: pathInRepo
       value: pipeline/build-rpm-package.yaml
   taskRunTemplate:
-    serviceAccountName: build-pipeline-local-release-microshift-gitops-rpm
+    serviceAccountName: build-pipeline-microshift-gitops-rpm-dev-main
   workspaces:
   - name: sources
     persistentVolumeClaim:
