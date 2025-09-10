@@ -57,7 +57,7 @@ spec:
       mv ./rpms/microshift-gitops/microshift-gitops.spec .
       mv ./rpms/microshift-gitops/argo-cd-sources.tar.gz .
       rm -rf ./sources
-      cat microshift-gitops.spec
+      
       echo "--- End script content ---"
   pipelineRef:
     resolver: git
