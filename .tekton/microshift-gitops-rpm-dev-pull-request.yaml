@@ -46,13 +46,20 @@ spec:
       #!/usr/bin/env bash
       set -euxo pipefail
       
-      echo "--- Init script content   ---"
-      # ./rpms/microshift-gitops/generic-pre-build-script.sh
-      ls -l
-      
+      echo "--- Preparing sources for RPM build ---"
       mv ./rpms/microshift-gitops/microshift-gitops.spec .
-      mv ./rpms/microshift-gitops/argo-cd-sources.tar.gz .
-      # rm -rf ./sources
+      
+      
+      echo "--- Creating argo-cd-sources.tar.gz with correct internal directory ---"
+      tar -czvf argo-cd-sources.tar.gz \
+      --transform="s|^argo-cd|${argo-cd}|" \
+      -C ./sources argo-cd
+      
+      echo "--- Cleaning up original source directory ---"
+      rm -rf ./sources
+      
+      echo "--- Workspace prepared ---"
+      ls -l
       
       echo "--- End script content ---"
   pipelineRef:

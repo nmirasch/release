@@ -49,12 +49,10 @@ spec:
       echo "--- Preparing sources for RPM build ---"
       mv ./rpms/microshift-gitops/microshift-gitops.spec .
       
-      SOURCE_DIR_NAME=$(grep '%global source_dir' *.spec | awk '{print $3}')
-      echo "Target directory name inside tarball will be: ${SOURCE_DIR_NAME}"
       
       echo "--- Creating argo-cd-sources.tar.gz with correct internal directory ---"
       tar -czvf argo-cd-sources.tar.gz \
-      --transform="s|^argo-cd|${SOURCE_DIR_NAME}|" \
+      --transform="s|^argo-cd|${argo-cd}|" \
       -C ./sources argo-cd
       
       echo "--- Cleaning up original source directory ---"
