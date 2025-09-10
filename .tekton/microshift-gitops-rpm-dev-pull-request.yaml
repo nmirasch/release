@@ -54,11 +54,6 @@ spec:
       
       echo "--- Cleaning up original source directory ---"
       rm -rf ./sources
-      
-      echo "--- Workspace prepared ---"
-      ls -l
-      
-      echo "--- End script content ---"
   pipelineRef:
     resolver: git
     params:
