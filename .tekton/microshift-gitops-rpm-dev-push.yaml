@@ -23,7 +23,7 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  - name: output-image
+  - name: ociStorage
     value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm-dev-release-1-17:{{revision}}
   - name: image-expires-after
     value: 5d
@@ -52,7 +52,7 @@ spec:
       
       mv ./rpms/microshift-gitops/microshift-gitops.spec .
       mv ./rpms/microshift-gitops/argo-cd-sources.tar.gz .
-      rm -rf ./sources
+      # rm -rf ./sources
       
       echo "--- End script content ---"
   pipelineRef:
