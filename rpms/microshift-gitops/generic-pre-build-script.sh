@@ -19,7 +19,7 @@ GITOPS_IMAGE_NAME="openshift-gitops-1/argocd-rhel9"
 REDIS_REGISTRY="registry.redhat.io"
 REDIS_IMAGE_NAME="rhel9/redis-7" #"rhel9/redis-6"
 REDIS_TAG_PREFIX="9.6-1755009825" # "rhel-9.3.0-container-released"
-CI_ARGO_CD_UPSTREAM_TAG=3.0.12
+CI_ARGO_CD_UPSTREAM_COMMIT=""
 
 GITOPS_TAG_PREFIX="v${GITOPS_VERSION}"
 CI_ARGO_CD_UPSTREAM_URL=https://github.com/argoproj/argo-cd
@@ -92,10 +92,6 @@ sed -i "s|REPLACE_REDIS_IMAGE_URL|${REDIS_IMAGE_URL}|g" microshift-gitops.spec
 sed -i "s|REPLACE_MICROSHIFT_GITOPS_RELEASE|${GITOPS_RELEASE}|g" microshift-gitops.spec
 sed -i "s|REPLACE_MICROSHIFT_GITOPS_VERSION|${GITOPS_VERSION}|g" microshift-gitops.spec
 sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_URL|${CI_ARGO_CD_UPSTREAM_URL}|g" microshift-gitops.spec
-sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_TAG|${CI_ARGO_CD_UPSTREAM_TAG}|g" microshift-gitops.spec
-
-#mv microshift-gitops.spec ./../../microshift-gitops.spec
-
-curl -L -o argo-cd-sources.tar.gz "https://github.com/argoproj/argo-cd/archive/refs/tags/v${CI_ARGO_CD_UPSTREAM_TAG}.tar.gz"
+sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_COMMIT|${CI_ARGO_CD_UPSTREAM_COMMIT}|g" microshift-gitops.spec
 
 echo "Spec files updated successfully."

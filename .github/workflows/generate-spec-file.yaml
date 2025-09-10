@@ -1,4 +1,4 @@
-name: Update Spec File and Create PR
+name: Update microshift-spec File and Create PR
 
 on:
   # This allows you to run the workflow manually from the Actions tab
@@ -32,10 +32,10 @@ on:
         description: 'Gitops Spec Release (??= version)'
         required: true
         default: '1.17.0'
-      ci_argo_cd_upstream_tag:
-        description: 'ArgoCD upstream source tag (without v)'
+      ci_argo_cd_upstream_commit:
+        description: 'ArgoCD upstream commit (full SHA)'
         required: true
-        default: '3.0.12'
+        default: 'ed1e2397ef9af6d23b284e39d504308cdda1957b'
       target_branch:
         description: 'The branch to create the pull request against'
         required: true
