@@ -44,7 +44,7 @@ spec:
       #!/usr/bin/env bash
       set -euxo pipefail
       
-      echo "--- Init script content  ---"
+      echo "--- Init script content   ---"
       # ./rpms/microshift-gitops/generic-pre-build-script.sh
       ls -l
       
