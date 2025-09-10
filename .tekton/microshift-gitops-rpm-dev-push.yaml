@@ -49,11 +49,8 @@ spec:
       echo "--- Preparing sources for RPM build ---"
       mv ./rpms/microshift-gitops/microshift-gitops.spec .
       
-      
       echo "--- Creating argo-cd-sources.tar.gz with correct internal directory ---"
-      tar -czvf argo-cd-sources.tar.gz \
-      --transform="s|^argo-cd|${argo-cd}|" \
-      -C ./sources argo-cd
+      tar -czvf argo-cd-sources.tar.gz --transform="s|^argo-cd|argo-cd|" -C ./sources argo-cd
       
       echo "--- Cleaning up original source directory ---"
       rm -rf ./sources
@@ -62,7 +59,6 @@ spec:
       ls -l
       
       echo "--- End script content ---"
-
   pipelineRef:
     resolver: git
     params:
