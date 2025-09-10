@@ -96,6 +96,6 @@ sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_TAG|${CI_ARGO_CD_UPSTREAM_TAG}|g" microshi
 
 #mv microshift-gitops.spec ./../../microshift-gitops.spec
 
-curl -L -o argo-cd-sources.tar.gz "https://github.com/argoproj/argo-cd/archive/refs/tags/v${CI_ARGO_CD_UPSTREAM_TAG}.tar.gz"
+#curl -L -o argo-cd-sources.tar.gz "https://github.com/argoproj/argo-cd/archive/refs/tags/v${CI_ARGO_CD_UPSTREAM_TAG}.tar.gz"
 
 echo "Spec files updated successfully."

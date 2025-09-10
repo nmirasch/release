@@ -46,15 +46,25 @@ spec:
       #!/usr/bin/env bash
       set -euxo pipefail
       
-      echo "--- Init script content   ---"
-      # ./rpms/microshift-gitops/generic-pre-build-script.sh
+      echo "--- Preparing sources for RPM build ---"
+      mv ./rpms/microshift-gitops/microshift-gitops.spec .
+      
+      SOURCE_DIR_NAME=$(grep '%global source_dir' *.spec | awk '{print $3}')
+      echo "Target directory name inside tarball will be: ${SOURCE_DIR_NAME}"
+      
+      echo "--- Creating argo-cd-sources.tar.gz with correct internal directory ---"
+      tar -czvf argo-cd-sources.tar.gz \
+      --transform="s|^argo-cd|${SOURCE_DIR_NAME}|" \
+      -C ./sources argo-cd
+      
+      echo "--- Cleaning up original source directory ---"
+      rm -rf ./sources
+      
+      echo "--- Workspace prepared ---"
       ls -l
       
-      mv ./rpms/microshift-gitops/microshift-gitops.spec .
-      mv ./rpms/microshift-gitops/argo-cd-sources.tar.gz .
-      # rm -rf ./sources
-      
       echo "--- End script content ---"
+
   pipelineRef:
     resolver: git
     params:

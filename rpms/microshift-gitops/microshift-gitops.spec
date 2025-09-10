@@ -6,7 +6,7 @@
 %global microshift_gitops_version 1.17.0
 %global microshift_gitops_release 1.17.0
 %global argocdtag 3.0.12
-%global source_dir argo-cd-%{argocdtag}
+%global source_dir argo-cd
 %global source_tar argo-cd-sources.tar.gz
 
 Name:           %{package_name}
