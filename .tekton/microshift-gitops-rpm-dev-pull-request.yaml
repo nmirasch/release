@@ -9,8 +9,7 @@ metadata:
     pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "main" && ( "rpms/microshift-gitops/***".pathChanged() || ".tekton/microshift-gitops-rpm-dev-pull-request.yaml".pathChanged()
-      || "Dockerfile".pathChanged() )
+      == "main" && ( "rpms/microshift-gitops/***".pathChanged() || ".tekton/microshift-gitops-rpm-dev-pull-request.yaml".pathChanged())
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: testing-rpms-builds
@@ -25,7 +24,7 @@ spec:
   - name: revision
     value: '{{revision}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm-dev-main:{{revision}}
+    value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm-dev-main:on-pr-{{revision}}
   - name: path-context
     value: rpms/microshift-gitops
   - name: package-name
