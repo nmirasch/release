@@ -40,7 +40,7 @@ spec:
     - aarch64
     - x86_64
   - name: pre-build-script-image
-    value: "registry.access.redhat.com/ubi9/ubi-minimal:latest"
+    value: "registry.access.redhat.com/ubi9/ubi:latest"
   - name: pre-build-script-content
     value: |
       #!/usr/bin/env bash
