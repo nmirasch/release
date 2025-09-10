@@ -22,7 +22,7 @@ spec:
     value: '{{source_url}}'
   - name: revision
     value: '{{revision}}'
-  - name: output-image
+  - name: ociStorage
     value: quay.io/redhat-user-workloads/rh-openshift-gitops-tenant/microshift-gitops-rpm-dev-main:{{revision}}
   - name: path-context
     value: rpms/microshift-gitops
