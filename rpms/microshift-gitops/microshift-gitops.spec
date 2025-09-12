@@ -5,7 +5,7 @@
 %global product_name OpenShift GitOps (ArgoCD) components for MicroShift
 %global microshift_gitops_version 1.17.0
 %global microshift_gitops_release 1.17.0
-%global commitid 
+%global commitid -
 %global source_dir argo-cd
 %global source_tar argo-cd-sources.tar.gz
 

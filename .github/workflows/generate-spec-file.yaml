@@ -32,10 +32,6 @@ on:
         description: 'Gitops Spec Release (??= version)'
         required: true
         default: '1.17.0'
-      ci_argo_cd_upstream_commit:
-        description: 'ArgoCD upstream commit (full SHA)'
-        required: true
-        default: 'ed1e2397ef9af6d23b284e39d504308cdda1957b'
       target_branch:
         description: 'The branch to create the pull request against'
         required: true
@@ -78,7 +74,7 @@ jobs:
         REDIS_TAG_PREFIX: ${{ inputs.redis_tag_prefix }}
         GITOPS_RELEASE: ${{ inputs.gitops_release }}
         CI_ARGO_CD_UPSTREAM_TAG: ${{ inputs.ci_argo_cd_upstream_tag }}
-      run: ./generic-pre-build-script.sh
+      run: ./generate-spec-file.sh
     
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6

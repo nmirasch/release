@@ -12,14 +12,14 @@ set -euxo pipefail
 # inspects them to find the correct image digests for different architectures,
 # and then updates the RPM spec file with these values.
 
-GITOPS_VERSION="1.17.0-5" # "1.16"
-GITOPS_RELEASE="1.17.0" # "1.16"
-GITOPS_REGISTRY="registry.redhat.io"
-GITOPS_IMAGE_NAME="openshift-gitops-1/argocd-rhel9"
-REDIS_REGISTRY="registry.redhat.io"
-REDIS_IMAGE_NAME="rhel9/redis-7" #"rhel9/redis-6"
-REDIS_TAG_PREFIX="9.6-1755009825" # "rhel-9.3.0-container-released"
-CI_ARGO_CD_UPSTREAM_COMMIT=""
+#GITOPS_VERSION="1.17.0-5" # "1.16"
+#GITOPS_RELEASE="1.17.0" # "1.16"
+#GITOPS_REGISTRY="registry.redhat.io"
+#GITOPS_IMAGE_NAME="openshift-gitops-1/argocd-rhel9"
+#REDIS_REGISTRY="registry.redhat.io"
+#REDIS_IMAGE_NAME="rhel9/redis-7" #"rhel9/redis-6"
+#REDIS_TAG_PREFIX="9.6-1755009825" # "rhel-9.3.0-container-released"
+CI_ARGO_CD_UPSTREAM_COMMIT="-"
 
 GITOPS_TAG_PREFIX="v${GITOPS_VERSION}"
 CI_ARGO_CD_UPSTREAM_URL=https://github.com/argoproj/argo-cd
