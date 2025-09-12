@@ -3,8 +3,8 @@
 
 %global package_name microshift-gitops
 %global product_name OpenShift GitOps (ArgoCD) components for MicroShift
-%global microshift_gitops_version 1.17.0
-%global microshift_gitops_release 1.17.0
+%global microshift_gitops_version 1.16.0
+%global microshift_gitops_release 1.16.0
 %global commitid -
 %global source_dir argo-cd
 %global source_tar argo-cd-sources.tar.gz
@@ -106,10 +106,10 @@ cat <<EOF >>"manifests/microshift-gitops/kustomization.yaml"
 images:
   - name: quay.io/argoproj/argocd
     newName: registry.redhat.io/openshift-gitops-1/argocd-rhel9
-    digest: "sha256:8168018c4ffadcda01fea61ec2bf005b556a28966dfdf60cf922a37392bcc987"
+    digest: "sha256:ded65e6e08ab3212abb5ff0d71c037e3618c489be8eabb9f80d8a66843127121"
   - name: redis
-    newName: registry.redhat.io/rhel9/redis-7
-    digest: "sha256:c796538bad7613deb1fba2bb76e736a6376b25ab97b2f944e67af00e01f5d965"
+    newName: registry.redhat.io/rhel9/redis-6
+    digest: "sha256:ce48a5ea21c70c334568bf551c6560528f6445260c013e1b722112509f864775"
 EOF
 %endif
 
@@ -118,10 +118,10 @@ cat <<EOF >>"manifests/microshift-gitops/kustomization.yaml"
 images:
   - name: quay.io/argoproj/argocd
     newName: registry.redhat.io/openshift-gitops-1/argocd-rhel9
-    digest: "sha256:5f35a4ed723fa364bd58bc56a9491915ec8bed256a056b07429e1957580b1c4f"
+    digest: "sha256:49fe9c4b12f6129de8ec99925c0a1a38ee3a8012e194184bff7dbb9bca646168"
   - name: redis
-    newName: registry.redhat.io/rhel9/redis-7
-    digest: "sha256:300c0fd54f8f49eba19e6a16745fa7e225f1f66b571c8e02cd098ef45e03d1c8"
+    newName: registry.redhat.io/rhel9/redis-6
+    digest: "sha256:ba222f552f2c6a27c5690641f10bfa98d1761640dfa6408925f9ad62b709bf3f"
 EOF
 %endif
 
@@ -130,11 +130,11 @@ mkdir -p "microshift-assets"
 cat <<EOF >"microshift-assets/release-gitops-arm64.json"
 {
   "release": {
-    "base": "v1.17.0-5"
+    "base": "v1.16.3-1"
   },
   "images": {
-    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:8168018c4ffadcda01fea61ec2bf005b556a28966dfdf60cf922a37392bcc987",
-    "redis": "registry.redhat.io/rhel9/redis-7@sha256:c796538bad7613deb1fba2bb76e736a6376b25ab97b2f944e67af00e01f5d965"
+    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:ded65e6e08ab3212abb5ff0d71c037e3618c489be8eabb9f80d8a66843127121",
+    "redis": "registry.redhat.io/rhel9/redis-6@sha256:ce48a5ea21c70c334568bf551c6560528f6445260c013e1b722112509f864775"
   }
 }
 EOF
@@ -142,11 +142,11 @@ EOF
 cat <<EOF >"microshift-assets/release-gitops-x86_64.json"
 {
   "release": {
-    "base": "v1.17.0-5"
+    "base": "v1.16.3-1"
   },
   "images": {
-    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:5f35a4ed723fa364bd58bc56a9491915ec8bed256a056b07429e1957580b1c4f",
-    "redis": "registry.redhat.io/rhel9/redis-7@sha256:300c0fd54f8f49eba19e6a16745fa7e225f1f66b571c8e02cd098ef45e03d1c8"
+    "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:49fe9c4b12f6129de8ec99925c0a1a38ee3a8012e194184bff7dbb9bca646168",
+    "redis": "registry.redhat.io/rhel9/redis-6@sha256:ba222f552f2c6a27c5690641f10bfa98d1761640dfa6408925f9ad62b709bf3f"
   }
 }
 EOF
