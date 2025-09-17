@@ -3,7 +3,7 @@
 set -euxo pipefail
 CONFIG=../../config.yaml
 
-# --- Tool Installation ---
+
 BIN_DIR="./bin"
 mkdir -p "$BIN_DIR"
 export PATH="$BIN_DIR:$PATH" # Add our local bin to the PATH
@@ -26,11 +26,11 @@ if [ ! -f "$YQ_BIN" ]; then
   chmod +x "$YQ_BIN"
 fi
 
-KONFLUX_ARGOCD_IMAGE_NAME="argocd-rhel9"
-ARGO_CD_IMAGE_SHA_X86='sha256:5f35a4ed723fa364bd58bc56a9491915ec8bed256a056b07429e1957580b1c4f'
-ARGO_CD_IMAGE_SHA_ARM='sha256:8168018c4ffadcda01fea61ec2bf005b556a28966dfdf60cf922a37392bcc987'
-REDIS_IMAGE_SHA_X86='sha256:300c0fd54f8f49eba19e6a16745fa7e225f1f66b571c8e02cd098ef45e03d1c8'
-REDIS_IMAGE_SHA_ARM='sha256:c796538bad7613deb1fba2bb76e736a6376b25ab97b2f944e67af00e01f5d965'
+#KONFLUX_ARGOCD_IMAGE_NAME="argocd-rhel9"
+#ARGO_CD_IMAGE_SHA_X86='sha256:5f35a4ed723fa364bd58bc56a9491915ec8bed256a056b07429e1957580b1c4f'
+#ARGO_CD_IMAGE_SHA_ARM='sha256:8168018c4ffadcda01fea61ec2bf005b556a28966dfdf60cf922a37392bcc987'
+#REDIS_IMAGE_SHA_X86='sha256:300c0fd54f8f49eba19e6a16745fa7e225f1f66b571c8e02cd098ef45e03d1c8'
+#REDIS_IMAGE_SHA_ARM='sha256:c796538bad7613deb1fba2bb76e736a6376b25ab97b2f944e67af00e01f5d965'
 
 ARGO_CD_IMAGE_REF=$(KONFLUX_ARGOCD_IMAGE_NAME_VAR="$KONFLUX_ARGOCD_IMAGE_NAME" $YQ_BIN e '(.konfluxImages[] | select(.name == env(KONFLUX_ARGOCD_IMAGE_NAME_VAR))).releaseRef' "$CONFIG")
 
@@ -51,7 +51,6 @@ sed -i "s|REPLACE_ARGO_CD_CONTAINER_SHA_ARM|${ARGO_CD_IMAGE_SHA_ARM}|g" microshi
 sed -i "s|REPLACE_ARGO_CD_IMAGE_URL|${ARGO_CD_IMAGE_REF}|g" microshift-gitops.spec
 sed -i "s|REPLACE_ARGO_CD_VERSION|${GITOPS_VERSION}|g" microshift-gitops.spec
 
-
 sed -i "s|REPLACE_REDIS_CONTAINER_SHA_X86|${REDIS_IMAGE_SHA_X86}|g" microshift-gitops.spec
 sed -i "s|REPLACE_REDIS_CONTAINER_SHA_ARM|${REDIS_IMAGE_SHA_ARM}|g" microshift-gitops.spec
 sed -i "s|REPLACE_REDIS_IMAGE_URL|${REDIS_IMAGE_REF}|g" microshift-gitops.spec
@@ -61,4 +60,4 @@ sed -i "s|REPLACE_MICROSHIFT_GITOPS_VERSION|${GITOPS_VERSION}|g" microshift-gito
 sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_URL|${CI_ARGO_CD_UPSTREAM_URL}|g" microshift-gitops.spec
 sed -i "s|REPLACE_CI_ARGO_CD_UPSTREAM_COMMIT|${CI_ARGO_CD_UPSTREAM_COMMIT}|g" microshift-gitops.spec
 
-echo "pre-build-script finished successfully."
+echo "generate-microshift-gitops-spec finished successfully."
