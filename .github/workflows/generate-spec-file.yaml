@@ -74,7 +74,7 @@ jobs:
         ARGO_CD_IMAGE_SHA_ARM: ${{ inputs.argo_cd_image_sha_arm }}
         REDIS_IMAGE_SHA_X86: ${{ inputs.redis_image_sha_x86 }}
         REDIS_IMAGE_SHA_ARM: ${{ inputs.redis_image_sha_arm }}
-      run: ./generate-spec-file.sh
+      run: ./generate-microshift-gitops-spec.sh
     
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v6
