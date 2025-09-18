@@ -3,9 +3,9 @@
 
 %global package_name microshift-gitops
 %global product_name OpenShift GitOps (ArgoCD) components for MicroShift
-%global microshift_gitops_version 1.17.0
-%global microshift_gitops_release 1.17.0
-%global argocdtag 3.0.12
+%global microshift_gitops_version 1.17.1
+%global microshift_gitops_release 1.17.1
+%global commitid ed1e2397ef9af6d23b284e39d504308cdda1957b
 %global source_dir argo-cd
 %global source_tar argo-cd-sources.tar.gz
 
@@ -14,7 +14,7 @@ Version:        %{microshift_gitops_version}
 Release:        %{microshift_gitops_release}%{?dist}
 Summary:        The %{product_name} package provides the required kustomize manifests for the OpenShift GitOps (ArgoCD) components to be installed on MicroShift.
 License:        ASL 2.0
-URL:            https://github.com/argoproj/argo-cd/releases/tag/v{argocdtag}
+URL:            https://github.com/argoproj/argo-cd/commit/%{commitid}
 
 Source0:        %{source_tar}
 BuildRequires:  sed
@@ -130,7 +130,7 @@ mkdir -p "microshift-assets"
 cat <<EOF >"microshift-assets/release-gitops-arm64.json"
 {
   "release": {
-    "base": "v1.17.0-5"
+    "base": "1.17.1"
   },
   "images": {
     "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:8168018c4ffadcda01fea61ec2bf005b556a28966dfdf60cf922a37392bcc987",
@@ -142,7 +142,7 @@ EOF
 cat <<EOF >"microshift-assets/release-gitops-x86_64.json"
 {
   "release": {
-    "base": "v1.17.0-5"
+    "base": "1.17.1"
   },
   "images": {
     "openshift-gitops-argocd": "registry.redhat.io/openshift-gitops-1/argocd-rhel9@sha256:5f35a4ed723fa364bd58bc56a9491915ec8bed256a056b07429e1957580b1c4f",
