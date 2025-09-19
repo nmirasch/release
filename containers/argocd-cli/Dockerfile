@@ -13,6 +13,13 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------
+# This Dockerfile is designed to build the cross-platform CLI binaries
+# as defined by the 'release-cli' target in the Makefile.
+#
+# It uses a multi-stage build to first compile the UI and then
+# build the Go binaries for various operating systems and architectures.
+# ------------------------------------------------------------------------
+
 
 ####################################################################################################
 # Argo CD UI stage
@@ -42,175 +49,142 @@ ENV ARGO_VERSION=$ARGO_VERSION
 RUN NODE_ONLINE_ENV='offline' NODE_ENV='production' $YARN build
 
 ####################################################################################################
-# Argo CD Build stage which performs the actual build of Argo CD binaries
+# Argo CD Build stage which performs the actual build of ArgoCD-cli binaries
+# This stage uses the Go toolset to build the binaries for different platforms
 ####################################################################################################
-# TODO: switch to registry.redhat.io once the image is available
-FROM registry.redhat.io/rhel8/go-toolset:1.24.6 as argocd-build
+FROM registry.redhat.io/rhel8/go-toolset:1.24.6 AS release-cli-build
+
 USER root
 
 COPY sources/argo-cd /go/src/github.com/argoproj/argo-cd
 WORKDIR /go/src/github.com/argoproj/argo-cd
 
-ENV GOFLAGS="-mod=mod"
+COPY --from=argocd-ui /usr/src/app/argo-cd/ui/dist/app ./ui/dist/app
 
-# build with strictfips
-ENV GOEXPERIMENT=strictfipsruntime
-ENV CGO_ENABLED=1
-ENV CGO_FLAG=1
+ARG VERSION
+ARG GIT_COMMIT
+ARG EXTRA_BUILD_INFO
 
-ARG CI_VERSION
-ARG CI_ARGO_CD_COMMIT
-ARG CI_ARGO_CD_VERSION
-ENV EXTRA_BUILD_INFO="{Vendor Information: Red Hat OpenShift GitOps version: $CI_VERSION}"
+ENV PACKAGE="github.com/argoproj/argo-cd/v3/common" \
+    GIT_TREE_STATE="clean"
 
-# Perform the build
-COPY --from=argocd-ui /usr/src/app/argo-cd/ui/dist/app /go/src/github.com/argoproj/argo-cd/ui/dist/app
-RUN export PACKAGE=github.com/argoproj/argo-cd/v3/common &&\
-export VERSION=$(cat VERSION) &&\
-export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') &&\
-export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev) &&\
-export GOEXPERIMENT=strictfipsruntime &&\
-export CGO_ENABLED=1 &&\
-export GODEBUG="tarinsecurepath=0,zipinsecurepath=0" &&\
-export LDFLAGS="-X ${PACKAGE}.version=${VERSION} \
-  -X ${PACKAGE}.buildDate=${BUILD_DATE} \
-  -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} \
-  -X ${PACKAGE}.gitTreeState=clean \
-  -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}\
-  -X \"${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}\"" &&\
-go build -gcflags="all=-N -l" -v -ldflags "${LDFLAGS}" -tags strictfipsruntime -o ./dist/argocd ./cmd
+RUN go mod download
 
-# Create static linked binary to be called from different base images.
-RUN export PACKAGE=github.com/argoproj/argo-cd/v2/common &&\
-    export VERSION=$(cat VERSION) &&\
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') &&\
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev) &&\
-    export GOEXPERIMENT='' &&\
-    export CGO_ENABLED=0 &&\
-    export GODEBUG="tarinsecurepath=0,zipinsecurepath=0" &&\
-    export LDFLAGS="-extldflags \"-static\" -X ${PACKAGE}.version=${VERSION} \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE} \
-        -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} \
-        -X ${PACKAGE}.gitTreeState=clean \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}\
-        -X \"${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}\"" &&\
-    go build -gcflags="all=-N -l" -v -ldflags "${LDFLAGS}" -o ./dist/argocd-cmp-server ./cmd
+RUN go clean -cache
+RUN rm -rf dist && mkdir -p dist
 
-ARG BUILD_ALL_CLIS=false
-RUN if [ "$BUILD_ALL_CLIS" = "true" ] ; then \
-    make CLI_NAME=argocd-darwin-amd64 GOOS=darwin GOARCH=amd64 cli-local && \
-    make CLI_NAME=argocd-windows-amd64.exe GOOS=windows GOARCH=amd64 cli-local \
-    ; fi
 
-# build kustomize
-COPY sources/kustomize /go/src/github.com/argoproj/kustomize
-WORKDIR /go/src/github.com/argoproj/kustomize/kustomize
-ARG CI_KUSTOMIZE_VERSION
-ENV GOSUMDB=off
-RUN GOEXPERIMENT=strictfipsruntime CGO_ENABLED=1 go build -mod=readonly -buildvcs=true -ldflags="-s -X sigs.k8s.io/kustomize/api/provenance.version=${CI_KUSTOMIZE_VERSION#kustomize/} \
--X sigs.k8s.io/kustomize/api/provenance.buildDate=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
--tags strictfipsruntime -o kustomize .
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for darwin/amd64..."; \
+    CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-amd64 ./cmd
 
-# build helm
-COPY sources/helm /go/src/github.com/argoproj/helm
-WORKDIR /go/src/github.com/argoproj/helm
-ARG CI_HELM_VERSION
-ARG CI_HELM_COMMIT
-RUN GOEXPERIMENT=strictfipsruntime CGO_ENABLED=1 go build -ldflags="-w -s -X helm.sh/helm/v3/internal/version.version=${CI_HELM_VERSION} \
--X helm.sh/helm/v3/internal/version.gitCommit=${CI_HELM_COMMIT}" -tags strictfipsruntime ./cmd/helm
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for darwin/arm64..."; \
+    CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-arm64 ./cmd
 
-# build tini
-COPY sources/tini /go/src/github.com/argoproj/tini
-WORKDIR /go/src/github.com/argoproj/tini
-ENV CFLAGS="-DPR_SET_CHILD_SUBREAPER=36 -DPR_GET_CHILD_SUBREAPER=37"
-RUN yum install -y cmake
-RUN cmake . && make tini
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for linux/amd64..."; \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-amd64 ./cmd
 
-# build connect-proxy
-COPY sources/ssh-connect /go/src/github.com/argoproj/ssh-connect
-WORKDIR /go/src/github.com/argoproj/ssh-connect
-RUN sed -i 's/SOCKLEN_T/socklen_t/g' connect.c 
-RUN gcc -v connect.c -o connect-proxy
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for linux/arm64..."; \
+    CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-arm64 ./cmd
 
-# build git-lfs
-COPY sources/git-lfs /go/src/github.com/argoproj/git-lfs
-WORKDIR /go/src/github.com/argoproj/git-lfs
-ARG CI_GIT_LFS_COMMIT
-RUN GOEXPERIMENT=strictfipsruntime CGO_ENABLED=1 \
- go build -ldflags="-w -s -X 'github.com/git-lfs/git-lfs/v3/config.Vendor=Red Hat Inc' \
- -X github.com/git-lfs/git-lfs/v3/config.GitCommit=${CI_GIT_LFS_COMMIT}" \
- -gcflags="" -tags strictfipsruntime -trimpath  -o ./bin/git-lfs ./git-lfs.go
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for linux/ppc6le..."; \
+    CGO_ENABLED=0 GOOS=linux GOARCH=ppc6le GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-ppc6le ./cmd
 
-####################################################################################################
-# Final image
-####################################################################################################
-####################################################################################################
-# Argo CD Base - used as the base for both the release and dev argocd images
-####################################################################################################
-FROM registry.access.redhat.com/ubi8/ubi-minimal AS argocd-base
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for linux/s390x..."; \
+    CGO_ENABLED=0 GOOS=linux GOARCH=s390x GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-s390x ./cmd
 
-USER root
-RUN microdnf install shadow-utils -y
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
+        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
+        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
+        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
+        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
+        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    echo "Building for windows/amd64..."; \
+    CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-windows-amd64.exe ./cmd
 
-RUN groupadd -g 999 argocd && \
-    useradd -l -r -u 999 -g argocd -d /home/argocd argocd && \
-    mkdir -p /home/argocd && \
-    chown argocd:0 /home/argocd && \
-    chmod g=u /home/argocd && \
-    microdnf install -y git gpg tar tzdata && \
-    microdnf clean all && \
-    rm -rf /tmp/* /var/tmp/*
-
-COPY sources/argo-cd/hack/gpg-wrapper.sh /usr/local/bin/gpg-wrapper.sh
-COPY sources/argo-cd/hack/git-verify-wrapper.sh /usr/local/bin/git-verify-wrapper.sh
-
-COPY sources/argo-cd/entrypoint.sh /usr/local/bin/entrypoint.sh
-# keep uid_entrypoint.sh for backward compatibility
-RUN ln -s /usr/local/bin/entrypoint.sh /usr/local/bin/uid_entrypoint.sh
-
-# support for mounting configuration from a configmap
-RUN mkdir -p /app/config/ssh && \
-    touch /app/config/ssh/ssh_known_hosts && \
-    ln -s /app/config/ssh/ssh_known_hosts /etc/ssh/ssh_known_hosts 
-
-RUN mkdir -p /app/config/tls
-RUN mkdir -p /app/config/gpg/source && \
-    mkdir -p /app/config/gpg/keys && \
-    chown argocd /app/config/gpg/keys && \
-    chmod 0700 /app/config/gpg/keys
-
-# workaround ksonnet issue https://github.com/ksonnet/ksonnet/issues/298
-ENV USER=argocd
-
-WORKDIR /home/argocd
-
-COPY --from=argocd-build /go/src/github.com/argoproj/argo-cd/dist/argocd /usr/local/bin/
-COPY --from=argocd-build /go/src/github.com/argoproj/argo-cd/dist/argocd-cmp-server /usr/local/bin/
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-server
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-repo-server
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-application-controller
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-dex
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-notifications
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-applicationset-controller
-RUN ln -s /usr/local/bin/argocd /usr/local/bin/argocd-k8s-auth
-
-USER 999
-COPY --from=argocd-build  /go/src/github.com/argoproj/kustomize/kustomize/kustomize /usr/local/bin/
-COPY --from=argocd-build  /go/src/github.com/argoproj/helm/helm /usr/local/bin/
-COPY --from=argocd-build  /go/src/github.com/argoproj/tini/tini /usr/local/bin/
-COPY --from=argocd-build  /go/src/github.com/argoproj/ssh-connect/connect-proxy /usr/local/bin/connect-proxy
-COPY --from=argocd-build  /go/src/github.com/argoproj/git-lfs/bin/git-lfs /usr/local/bin/
-
-LABEL \
-    name="openshift-gitops-1/argocd-rhel8" \
-    License="Apache 2.0" \
-    com.redhat.component="openshift-gitops-argocd-container" \
-    com.redhat.delivery.appregistry="false" \
-    upstream-vcs-type="git" \
-    summary="Red Hat Openshift GitOps Argo CD" \
-    io.openshift.expose-services="" \
-    io.openshift.tags="openshift,gitops,argocd" \
-    io.k8s.display-name="openshift-gitops-argocd" \
-    io.k8s.description="Red Hat Openshift GitOps Argo CD" \
-    maintainer="William Tam <wtam@redhat.com>" \
-    description="Red Hat Openshift GitOps Argo CD"
+RUN \
+    set -eux; \
+    echo "Packaging binaries for Konflux release..."; \
+    mkdir -p /releases; \
+    mv dist/* /releases/; \
+    cd /releases; \
+    tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
+    tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
+    tar -czf argocd-linux-amd64.tar.gz argocd-linux-amd64; \
+    tar -czf argocd-linux-arm64.tar.gz argocd-linux-arm64; \
+    tar -czf argocd-linux-ppc6le.tar.gz argocd-linux-ppc6le; \
+    tar -czf argocd-linux-s390x.tar.gz argocd-linux-s390x; \
+    tar -czf argocd-windows-amd64.tar.gz argocd-windows-amd64.exe; \
+    # Clean up the uncompressed binaries to save space in the final layer. \
+    rm argocd-*; \
+    echo "Konflux packaging complete. Artifacts are in /releases."
