@@ -61,9 +61,10 @@ WORKDIR /go/src/github.com/argoproj/argo-cd
 
 COPY --from=argocd-ui /usr/src/app/argo-cd/ui/dist/app ./ui/dist/app
 
-ARG VERSION
-ARG GIT_COMMIT
-ARG EXTRA_BUILD_INFO
+ARG CI_ARGO_CD_VERSION
+ARG CI_ARGO_CD_COMMIT
+ARG CI_VERSION
+ENV EXTRA_BUILD_INFO="{Vendor Information: Red Hat OpenShift GitOps version: $CI_VERSION}"
 
 ENV PACKAGE="github.com/argoproj/argo-cd/v3/common" \
     GIT_TREE_STATE="clean"
@@ -73,17 +74,11 @@ RUN go mod download
 RUN go clean -cache
 RUN rm -rf dist && mkdir -p dist
 
-
 RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for darwin/amd64..."; \
     CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-amd64 ./cmd
@@ -92,12 +87,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for darwin/arm64..."; \
     CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-arm64 ./cmd
@@ -106,12 +96,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for linux/amd64..."; \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-amd64 ./cmd
@@ -120,12 +105,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for linux/arm64..."; \
     CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-arm64 ./cmd
@@ -134,12 +114,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for linux/ppc6le..."; \
     CGO_ENABLED=0 GOOS=linux GOARCH=ppc6le GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-ppc6le ./cmd
@@ -148,12 +123,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for linux/s390x..."; \
     CGO_ENABLED=0 GOOS=linux GOARCH=s390x GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-s390x ./cmd
@@ -162,12 +132,7 @@ RUN \
     set -eux; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-      LDFLAGS="-w -s -X ${PACKAGE}.version=${VERSION}  \
-        -X ${PACKAGE}.buildDate=${BUILD_DATE}  \
-        -X ${PACKAGE}.gitCommit=${GIT_COMMIT}  \
-        -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE}  \
-        -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER}  \
-        -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO:-}'"; \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
     echo "Building for windows/amd64..."; \
     CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-windows-amd64.exe ./cmd
@@ -188,3 +153,4 @@ RUN \
     # Clean up the uncompressed binaries to save space in the final layer. \
     rm argocd-*; \
     echo "Konflux packaging complete. Artifacts are in /releases."
+
