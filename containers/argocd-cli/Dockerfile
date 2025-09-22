@@ -111,25 +111,23 @@ RUN \
     GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-arm64 ./cmd
 
-# --- The ppc6le and s390x architectures are not supported by this Go toolset base image ---
-#
-# RUN \
-#     set -eux; \
-#     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-#     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-#     LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-#     echo "Building for linux/ppc6le..."; \
-#     GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=ppc6le GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-#     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-ppc6le ./cmd
-#
-# RUN \
-#     set -eux; \
-#     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-#     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-#     LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-#     echo "Building for linux/s390x..."; \
-#     GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=s390x GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-#     go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-s390x ./cmd
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
+    echo "Building for linux/ppc64le..."; \
+    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-ppc6le ./cmd
+
+RUN \
+    set -eux; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
+    echo "Building for linux/s390x..."; \
+    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=s390x GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
+    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-s390x ./cmd
 
 RUN \
     set -eux; \
@@ -151,9 +149,8 @@ RUN \
     # tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
     tar -czf argocd-linux-amd64.tar.gz argocd-linux-amd64; \
     tar -czf argocd-linux-arm64.tar.gz argocd-linux-arm64; \
-    # tar -czf argocd-linux-ppc6le.tar.gz argocd-linux-ppc6le; \
-    # tar -czf argocd-linux-s390x.tar.gz argocd-linux-s390x; \
+    tar -czf argocd-linux-ppc64le.tar.gz argocd-linux-ppc6le; \
+    tar -czf argocd-linux-s390x.tar.gz argocd-linux-s390x; \
     tar -czf argocd-windows-amd64.tar.gz argocd-windows-amd64.exe; \
-    # Clean up the uncompressed binaries to save space in the final layer. \
     rm argocd-*; \
     echo "Konflux packaging complete. Artifacts are in /releases."
