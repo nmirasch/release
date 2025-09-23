@@ -88,44 +88,42 @@ RUN \
         go build -v -ldflags "$LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
     done
 
+#WORKDIR /
+#COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
 
-WORKDIR /
+#RUN \
+#    set -eux; \
+#    yum install -y \
+#    clang \
+#    cmake \
+#    git \
+#    libxml2-devel \
+#    llvm \
+#    make \
+#    patch \
+#    zlib-devel \
+#    && yum clean all; \
+#    # Build the osxcross toolchain
+#    tar -xzf /osxcross-sdk-with-macOS11.3.tar.gz -C / && \
+#    cd osxcross && UNATTENDED=1 ./build.sh;
 
-COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
+#WORKDIR /go/src/github.com/argoproj/argo-cd
 
-RUN \
-    set -eux; \
-    yum install -y \
-    clang \
-    cmake \
-    git \
-    libxml2-devel \
-    llvm \
-    make \
-    patch \
-    zlib-devel \
-    && yum clean all; \
-    # Build the osxcross toolchain
-    tar -xzf /osxcross-sdk-with-macOS11.3.tar.gz -C / && \
-    cd osxcross && UNATTENDED=1 ./build.sh;
-
-WORKDIR /go/src/github.com/argoproj/argo-cd
-
-RUN \
-    set -eux; \
-    cd /go/src/github.com/argoproj/argo-cd; \
-    export PATH="/osxcross/target/bin:$PATH"; \
-    export CGO_ENABLED=1; \
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    for target in darwin/amd64 darwin/arm64; do \
-        GOOS=$(echo ${target} | cut -d'/' -f1); \
-        GOARCH=$(echo ${target} | cut -d'/' -f2); \
-        OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
-        echo "Building for ${target}..."; \
-        go build -v -ldflags "$BASE_LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
-    done
+#RUN \
+#    set -eux; \
+#    cd /go/src/github.com/argoproj/argo-cd; \
+#    export PATH="/osxcross/target/bin:$PATH"; \
+#    export CGO_ENABLED=1; \
+#    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+#    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+#    BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
+#    for target in darwin/amd64 darwin/arm64; do \
+#        GOOS=$(echo ${target} | cut -d'/' -f1); \
+#        GOARCH=$(echo ${target} | cut -d'/' -f2); \
+#        OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
+#        echo "Building for ${target}..."; \
+#        go build -v -ldflags "$BASE_LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
+#    done
 
 
 RUN \
@@ -134,8 +132,8 @@ RUN \
     mkdir -p /releases; \
     mv dist/* /releases/; \
     cd /releases; \
-    tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
-    tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
+#    tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
+#    tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
     tar -czf argocd-linux-amd64.tar.gz argocd-linux-amd64; \
     tar -czf argocd-linux-arm64.tar.gz argocd-linux-arm64; \
     tar -czf argocd-linux-ppc64le.tar.gz argocd-linux-ppc64le; \
