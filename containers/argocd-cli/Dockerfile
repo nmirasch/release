@@ -95,7 +95,7 @@ COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
 
 RUN \
     set -eux; \
-    dnf install -y \
+    dnf --disableplugin=subscription-manager install -y \
     clang \
     cmake \
     git \
