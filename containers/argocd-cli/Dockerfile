@@ -95,7 +95,8 @@ COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
 
 RUN \
     set -eux; \
-    dnf --disableplugin=subscription-manager install -y \
+    dnf --disableplugin=subscription-manager install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
     clang \
     cmake \
     git \
