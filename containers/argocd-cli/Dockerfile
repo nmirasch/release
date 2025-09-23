@@ -13,9 +13,7 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------
-# This Dockerfile is designed to build the cross-platform CLI binaries
-# as defined by the 'release-cli' target in the Makefile.
-#
+# This Dockerfile is designed to build the cross-platform CLI binaries.
 # It uses a multi-stage build to first compile the UI and then
 # build the Go binaries for various operating systems and architectures.
 # ------------------------------------------------------------------------
@@ -56,6 +54,7 @@ FROM registry.redhat.io/rhel8/go-toolset:1.24.6 AS release-cli-build
 
 USER root
 
+# --- ArgoCD Build Setup ---
 COPY sources/argo-cd /go/src/github.com/argoproj/argo-cd
 WORKDIR /go/src/github.com/argoproj/argo-cd
 
@@ -70,73 +69,63 @@ ENV PACKAGE="github.com/argoproj/argo-cd/v3/common" \
     GIT_TREE_STATE="clean"
 
 RUN go mod download
-
 RUN go clean -cache
 RUN rm -rf dist && mkdir -p dist
 
 
-# RUN \
-#     set -eux; \
-#     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-#     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-#     LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-#     echo "Building for darwin/amd64..."; \
-#     GOMAXPROCS=1 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-#     go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-amd64 ./cmd
-#
-# RUN \
-#     set -eux; \
-#     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-#     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-#     LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-#     echo "Building for darwin/arm64..."; \
-#     GOMAXPROCS=1 CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-#     go build -v -ldflags "$LDFLAGS" -o dist/argocd-darwin-arm64 ./cmd
+RUN \
+    set -eux; \
+    export CGO_ENABLED=0; \
+    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
+    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
+    BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
+    for target in windows/amd64 linux/amd64 linux/arm64 linux/ppc64le linux/s390x; do \
+        GOOS=$(echo ${target} | cut -d'/' -f1); \
+        GOARCH=$(echo ${target} | cut -d'/' -f2); \
+        OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
+        LDFLAGS="${BASE_LDFLAGS} -extldflags '-static'"; \
+        echo "Building for ${target}..."; \
+        go build -v -ldflags "$LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
+    done
+
+
+WORKDIR /
+
+COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
 
 RUN \
     set -eux; \
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    echo "Building for linux/amd64..."; \
-    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-amd64 ./cmd
+    dnf install -y \
+    clang \
+    cmake \
+    git \
+    libxml2-devel \
+    llvm \
+    make \
+    patch \
+    zlib-devel \
+    && dnf clean all; \
+    # Build the osxcross toolchain
+    tar -xzf /osxcross-sdk-with-macOS11.3.tar.gz -C / && \
+    cd osxcross && UNATTENDED=1 ./build.sh;
+
+WORKDIR /go/src/github.com/argoproj/argo-cd
 
 RUN \
     set -eux; \
+    cd /go/src/github.com/argoproj/argo-cd; \
+    export PATH="/osxcross/target/bin:$PATH"; \
+    export CGO_ENABLED=1; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    echo "Building for linux/arm64..."; \
-    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-arm64 ./cmd
-
-RUN \
-    set -eux; \
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    echo "Building for linux/ppc64le..."; \
-    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-ppc6le ./cmd
-
-RUN \
-    set -eux; \
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    echo "Building for linux/s390x..."; \
-    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=linux GOARCH=s390x GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-    go build -v -ldflags "$LDFLAGS" -o dist/argocd-linux-s390x ./cmd
-
-RUN \
-    set -eux; \
-    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-    LDFLAGS="-w -s -X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    echo "Building for windows/amd64..."; \
-    GOMAXPROCS=1 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GODEBUG="tarinsecurepath=0,zipinsecurepath=0" \
-    go build -v -ldflags "$LDFLAGS" -o dist/argocd-windows-amd64.exe ./cmd
+    BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
+    for target in darwin/amd64 darwin/arm64; do \
+        GOOS=$(echo ${target} | cut -d'/' -f1); \
+        GOARCH=$(echo ${target} | cut -d'/' -f2); \
+        OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
+        echo "Building for ${target}..."; \
+        go build -v -ldflags "$BASE_LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
+    done
 
 
 RUN \
@@ -145,12 +134,13 @@ RUN \
     mkdir -p /releases; \
     mv dist/* /releases/; \
     cd /releases; \
-    # tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
-    # tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
+    tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
+    tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
     tar -czf argocd-linux-amd64.tar.gz argocd-linux-amd64; \
     tar -czf argocd-linux-arm64.tar.gz argocd-linux-arm64; \
-    tar -czf argocd-linux-ppc64le.tar.gz argocd-linux-ppc6le; \
+    tar -czf argocd-linux-ppc64le.tar.gz argocd-linux-ppc64le; \
     tar -czf argocd-linux-s390x.tar.gz argocd-linux-s390x; \
+    mv argocd-windows-amd64 argocd-windows-amd64.exe; \
     tar -czf argocd-windows-amd64.tar.gz argocd-windows-amd64.exe; \
     rm argocd-*; \
     echo "Konflux packaging complete. Artifacts are in /releases."
