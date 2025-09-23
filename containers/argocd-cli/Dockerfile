@@ -95,7 +95,7 @@ COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
 
 RUN \
     set -eux; \
-    dnf --disableplugin=subscription-manager --enablerepo=crb install -y \
+    yum install -y \
     clang \
     cmake \
     git \
@@ -104,7 +104,7 @@ RUN \
     make \
     patch \
     zlib-devel \
-    && dnf clean all; \
+    && yum clean all; \
     # Build the osxcross toolchain
     tar -xzf /osxcross-sdk-with-macOS11.3.tar.gz -C / && \
     cd osxcross && UNATTENDED=1 ./build.sh;
