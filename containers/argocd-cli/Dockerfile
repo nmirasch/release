@@ -13,11 +13,6 @@
 # limitations under the License.
 #
 # ------------------------------------------------------------------------
-# This Dockerfile is designed to build the cross-platform CLI binaries.
-# It uses a multi-stage build to first compile the UI and then
-# build the Go binaries for various operating systems and architectures.
-# ------------------------------------------------------------------------
-
 
 ####################################################################################################
 # Argo CD UI stage
@@ -47,8 +42,7 @@ ENV ARGO_VERSION=$ARGO_VERSION
 RUN NODE_ONLINE_ENV='offline' NODE_ENV='production' $YARN build
 
 ####################################################################################################
-# Argo CD Build stage which performs the actual build of ArgoCD-cli binaries
-# This stage uses the Go toolset to build the binaries for different platforms
+# Argo CD Build stage which performs the actual build of Argocd-cli binaries
 ####################################################################################################
 FROM registry.redhat.io/rhel8/go-toolset:1.24.6 AS release-cli-build
 
@@ -72,14 +66,13 @@ RUN go mod download
 RUN go clean -cache
 RUN rm -rf dist && mkdir -p dist
 
-
 RUN \
     set -eux; \
     export CGO_ENABLED=0; \
     export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
     export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
     BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-    for target in windows/amd64 linux/amd64 linux/arm64 linux/ppc64le linux/s390x; do \
+    for target in linux/amd64 linux/arm64 linux/ppc64le linux/s390x; do \
         GOOS=$(echo ${target} | cut -d'/' -f1); \
         GOARCH=$(echo ${target} | cut -d'/' -f2); \
         OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
@@ -88,57 +81,14 @@ RUN \
         go build -v -ldflags "$LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
     done
 
-#WORKDIR /
-#COPY prefetch/osxcross-sdk-with-macOS11.3.tar.gz /
-
-#RUN \
-#    set -eux; \
-#    yum install -y \
-#    clang \
-#    cmake \
-#    git \
-#    libxml2-devel \
-#    llvm \
-#    make \
-#    patch \
-#    zlib-devel \
-#    && yum clean all; \
-#    # Build the osxcross toolchain
-#    tar -xzf /osxcross-sdk-with-macOS11.3.tar.gz -C / && \
-#    cd osxcross && UNATTENDED=1 ./build.sh;
-
-#WORKDIR /go/src/github.com/argoproj/argo-cd
-
-#RUN \
-#    set -eux; \
-#    cd /go/src/github.com/argoproj/argo-cd; \
-#    export PATH="/osxcross/target/bin:$PATH"; \
-#    export CGO_ENABLED=1; \
-#    export BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ'); \
-#    export KUBECTL_VER=$(go list -m k8s.io/client-go | head -n 1 | rev | cut -d' ' -f1 | rev); \
-#    BASE_LDFLAGS="-X ${PACKAGE}.version=${CI_ARGO_CD_VERSION} -X ${PACKAGE}.buildDate=${BUILD_DATE} -X ${PACKAGE}.gitCommit=${CI_ARGO_CD_COMMIT} -X ${PACKAGE}.gitTreeState=${GIT_TREE_STATE} -X ${PACKAGE}.kubectlVersion=${KUBECTL_VER} -X '${PACKAGE}.extraBuildInfo=${EXTRA_BUILD_INFO}'"; \
-#    for target in darwin/amd64 darwin/arm64; do \
-#        GOOS=$(echo ${target} | cut -d'/' -f1); \
-#        GOARCH=$(echo ${target} | cut -d'/' -f2); \
-#        OUTPUT_NAME="argocd-${GOOS}-${GOARCH}"; \
-#        echo "Building for ${target}..."; \
-#        go build -v -ldflags "$BASE_LDFLAGS" -o "dist/${OUTPUT_NAME}" ./cmd; \
-#    done
-
-
 RUN \
     set -eux; \
     echo "Packaging binaries for Konflux release..."; \
     mkdir -p /releases; \
     mv dist/* /releases/; \
     cd /releases; \
-#    tar -czf argocd-darwin-amd64.tar.gz argocd-darwin-amd64; \
-#    tar -czf argocd-darwin-arm64.tar.gz argocd-darwin-arm64; \
     tar -czf argocd-linux-amd64.tar.gz argocd-linux-amd64; \
     tar -czf argocd-linux-arm64.tar.gz argocd-linux-arm64; \
     tar -czf argocd-linux-ppc64le.tar.gz argocd-linux-ppc64le; \
     tar -czf argocd-linux-s390x.tar.gz argocd-linux-s390x; \
-    mv argocd-windows-amd64 argocd-windows-amd64.exe; \
-    tar -czf argocd-windows-amd64.tar.gz argocd-windows-amd64.exe; \
-    rm argocd-*; \
     echo "Konflux packaging complete. Artifacts are in /releases."

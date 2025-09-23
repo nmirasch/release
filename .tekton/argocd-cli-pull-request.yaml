@@ -4,17 +4,28 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/nmirasch/release?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
-    pipelinesascode.tekton.dev/cancel-in-progress: "false"
+    pipelinesascode.tekton.dev/cancel-in-progress: "true"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch
-      == "GITOPS-7196_main"
+    pipelinesascode.tekton.dev/on-cel-expression: >-
+      event == "push" &&
+      target_branch == "GITOPS-7196_main" &&
+      (
+        "sources/argo-cd".pathChanged() ||
+        "containers/argocd-cli/***".pathChanged() ||
+        ".tekton/argocd-cli-pull-request.yaml".pathChanged() ||
+        "prefetch/rpms/ubi8/***".pathChanged() ||
+        "BUILD".pathChanged() ||
+        ".tekton/build-multi-platform-image.yaml".pathChanged() ||
+        ".tekton/tasks/***".pathChanged()
+      )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: testing-rpms-builds
     appstudio.openshift.io/component: argocd-cli-dev-gitops-7196-main
     pipelines.appstudio.openshift.io/type: build
-  name: argocd-cli-dev-gitops-7196-main-on-push
+  name: argocd-cli-dev-gitops-7196-main-on-pull-request
   namespace: rh-openshift-gitops-tenant
 spec:
   params:
