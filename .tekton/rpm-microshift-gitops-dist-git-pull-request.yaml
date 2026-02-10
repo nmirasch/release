@@ -30,11 +30,11 @@ spec:
   - name: package-name
     value: microshift-gitops
   - name: git-url
-    value: "https://gitlab.cee.redhat.com/nmirasch/gitops-midstream-repos"
+    value: "https://github.com/nmirasch/distgit-rpm-testing"
   - name: revision
     value: "{{ revision }}"
   - name: target-branch
-    value: "gitops-1.19-rhel-9"
+    value: "main"
   - name: hermetic
     value: "true"
   - name: build-architectures
