@@ -19,6 +19,8 @@ As recommended by the Konflux team, **Yarn v1 is prefetched** using a `package.j
   Include the Yarn prefetch directory in `prefetch-input` for components that require Yarn v1.
 - **Dockerfile**  
   Update the `PATH` (or reference the binary directly) to use the prefetched Yarn instead of installing it during the build.
+- **Nexus npm cache**  
+  Set the registry URL in `prefetch/yarn/.npmrc` (see `prefetch/npm/README.md`). The shared pipeline enables the Konflux package registry proxy during prefetch.
 
 ## References
 
