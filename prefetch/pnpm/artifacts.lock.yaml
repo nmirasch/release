@@ -1,0 +1,10 @@
+---
+metadata:
+  version: "1.0"
+artifacts:
+  - download_url: "https://registry.npmjs.org/corepack/-/corepack-0.34.6.tgz"
+    checksum: "sha512:82fca5abd933241d3d992b223a728e9e183461d096372d9a19a7866d81781e5c8677fbf89a8c44a2742324f608e39fcae333fbab5856f6a095bda61828ae6790"
+    filename: "toolchain-corepack-0.34.6.tgz"
+  - download_url: "https://registry.npmjs.org/pnpm/-/pnpm-10.28.1.tgz"
+    checksum: "sha512:7d7dbbca9e99447b7c3bf7a73286afaaf6be99251eb9498baefa7d406892f67b879adb3a1d7e687fc4ccc1a388c7175fbaae567a26ab44d1067b54fcb0d6a316"
+    filename: "toolchain-pnpm-10.28.1.tgz"
