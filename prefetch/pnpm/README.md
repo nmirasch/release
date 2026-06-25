@@ -1,38 +1,40 @@
-# pnpm Toolchain via Hermeto Generic Fetcher
+# pnpm Bootstrap via npm Prefetch
 
 Related: [GITOPS-9932](https://redhat.atlassian.net/browse/GITOPS-9932)
 
-Hermeto does not support `pnpm` natively yet ([hermeto#1251](https://github.com/hermetoproject/hermeto/issues/1251)). This directory uses the **generic fetcher** to prefetch the pnpm toolchain for hermetic Node.js UI builds.
+Hermeto does not support `pnpm-lock.yaml` natively yet ([hermeto#1251](https://github.com/hermetoproject/hermeto/issues/1251)).  
+This directory bootstraps the **pnpm CLI** using Hermeto's supported `npm` prefetch path (same pattern as `prefetch/yarn`).
 
-**Scope (exploration):** Argo CD only. `console-plugin` and `kubectl-argo-rollouts-cli` still use yarn today; they should follow the same generic-fetcher pattern once migrated to pnpm upstream.
+**Scope (exploration):** Argo CD only. `console-plugin` and `kubectl-argo-rollouts-cli` still use yarn today.
 
 ## Layout
 
 | File | Purpose |
 |------|---------|
-| `artifacts.lock.yaml` | Hermeto generic lockfile for corepack and pnpm npm tarballs |
-| `../argocd-ui/artifacts.lock.yaml` | UI dependency tarballs generated from `pnpm-lock.yaml` |
+| `package.json` + `package-lock.json` | Pin `pnpm` package for npm prefetch |
+| `../argocd-ui/artifacts.lock.yaml` | UI dependency tarballs generated from `pnpm-lock.yaml` (generic fetcher) |
 
 ## Regenerate lockfiles
 
 ```bash
-# Toolchain (corepack + pnpm versions pinned in the script):
-./hack/generate-pnpm-artifacts-lock.py toolchain
+# Regenerate npm lockfile for pnpm bootstrap:
+npm --prefix prefetch/pnpm install --package-lock-only
 
-# UI dependencies (after bumping sources/argo-cd via config.yaml):
+# Regenerate UI dependency artifacts lockfile (after bumping sources/argo-cd via config.yaml):
 ./hack/generate-pnpm-artifacts-lock.py ui-lockfile sources/argo-cd/ui/pnpm-lock.yaml
 ```
 
 ## Tekton prefetch-input
 
 ```json
-{"type": "generic", "path": "prefetch/pnpm"},
+{"type": "npm", "path": "prefetch/pnpm"},
 {"type": "generic", "path": "prefetch/argocd-ui"}
 ```
 
 ## Build-time usage
 
-Prefetched files land under `/cachi2/output/deps/generic/` during hermetic builds. See `containers/argocd/Dockerfile` and `hack/seed-pnpm-store.sh`.
+- `{"type":"npm","path":"prefetch/pnpm"}` provides pnpm CLI bootstrap for Dockerfile (`npm install --prefer-offline`).
+- `{"type":"generic","path":"prefetch/argocd-ui"}` provides UI tarballs consumed by `hack/seed-pnpm-store.sh`.
 
 ## Validation with Hermeto team
 

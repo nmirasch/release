@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-"""Generate Hermeto generic-fetcher lockfiles from pnpm-lock.yaml.
+"""Generate Hermeto generic-fetcher lockfile from pnpm-lock.yaml.
 
 Usage:
-  # Toolchain only (corepack + pnpm):
-  ./hack/generate-pnpm-artifacts-lock.py toolchain -o prefetch/pnpm/artifacts.lock.yaml
-
   # Argo CD UI dependencies (requires pnpm-lock.yaml):
   ./hack/generate-pnpm-artifacts-lock.py ui-lockfile sources/argo-cd/ui/pnpm-lock.yaml \\
       -o prefetch/argocd-ui/artifacts.lock.yaml
@@ -19,21 +16,7 @@ import argparse
 import base64
 import re
 import sys
-import urllib.request
 from pathlib import Path
-
-TOOLCHAIN_PACKAGES = [
-    {
-        "name": "corepack",
-        "version": "0.34.6",
-        "integrity": "sha512-gvylq9kzJB09mSsiOnKOnhg0YdCWNy2aGaeGbYF4HlyGd/v4moxEonQjJPYI45/K4zP7q1hW9qCVvaYYKK5nkA==",
-    },
-    {
-        "name": "pnpm",
-        "version": "10.28.1",
-        "integrity": "sha512-fX27yp6ZRHt8O/enMoavqva+mSUeuUmLrvp9QGiS9nuHmts6HX5of8TMwaOIxxdfuq5WeiarRNEGe1T8sNajFg==",
-    },
-]
 
 # Git-hosted packages without integrity in pnpm-lock.yaml (checksum computed offline).
 KNOWN_TARBALLS_WITHOUT_INTEGRITY = {
@@ -120,20 +103,6 @@ def parse_pnpm_lockfile(path: Path) -> list[dict]:
     return artifacts
 
 
-def toolchain_artifacts() -> list[dict]:
-    artifacts = []
-    for pkg in TOOLCHAIN_PACKAGES:
-        name, version = pkg["name"], pkg["version"]
-        artifacts.append(
-            {
-                "download_url": f"https://registry.npmjs.org/{name}/-/{name}-{version}.tgz",
-                "checksum": integrity_to_checksum(pkg["integrity"]),
-                "filename": f"toolchain-{name}-{version}.tgz",
-            }
-        )
-    return artifacts
-
-
 def write_lockfile(path: Path, artifacts: list[dict]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
@@ -155,18 +124,13 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    toolchain_cmd = sub.add_parser("toolchain", help="Generate pnpm/corepack toolchain lockfile")
-    toolchain_cmd.add_argument("-o", "--output", type=Path, default=Path("prefetch/pnpm/artifacts.lock.yaml"))
-
     ui_cmd = sub.add_parser("ui-lockfile", help="Generate UI dependency lockfile from pnpm-lock.yaml")
     ui_cmd.add_argument("pnpm_lock", type=Path)
     ui_cmd.add_argument("-o", "--output", type=Path, default=Path("prefetch/argocd-ui/artifacts.lock.yaml"))
 
     args = parser.parse_args()
 
-    if args.command == "toolchain":
-        write_lockfile(args.output, toolchain_artifacts())
-    elif args.command == "ui-lockfile":
+    if args.command == "ui-lockfile":
         if not args.pnpm_lock.is_file():
             print(f"error: {args.pnpm_lock} not found", file=sys.stderr)
             return 1

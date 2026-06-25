@@ -21,10 +21,12 @@ FROM registry.access.redhat.com/ubi9/nodejs-22 AS argocd-ui
 
 USER root
 
-# pnpm toolchain from Hermeto generic prefetch (prefetch/pnpm)
-RUN npm install -g --offline --no-audit --no-fund \
-    /cachi2/output/deps/generic/toolchain-pnpm-10.28.1.tgz && \
-    pnpm --version
+# Install pnpm via npm prefetch bootstrap (same pattern as prefetch/yarn)
+WORKDIR /usr/src/app
+COPY ["prefetch/pnpm/package.json", "prefetch/pnpm/package-lock.json", "./"]
+RUN npm install --prefer-offline --no-progress --non-interactive
+ENV PATH="/usr/src/app/node_modules/.bin:${PATH}"
+RUN pnpm --version
 
 WORKDIR /usr/src/app/argo-cd/ui
 
