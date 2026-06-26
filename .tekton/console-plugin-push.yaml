@@ -13,6 +13,8 @@ metadata:
       (
         "sources/gitops-console-plugin".pathChanged() ||
         "containers/console-plugin/***".pathChanged() ||
+        "prefetch/yarn/***".pathChanged() ||
+        "prefetch/npm/***".pathChanged() ||
         ".tekton/console-plugin-push.yaml".pathChanged() ||
         "BUILD".pathChanged() ||
         ".tekton/build-multi-platform-image.yaml".pathChanged() ||
@@ -51,4 +53,7 @@ spec:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
+  - name: netrc
+    secret:
+      secretName: nexus-npm-netrc
 status: {}

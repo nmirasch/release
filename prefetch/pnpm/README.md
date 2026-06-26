@@ -1,6 +1,6 @@
 # pnpm Bootstrap via npm Prefetch
 
-Related: [GITOPS-9932](https://redhat.atlassian.net/browse/GITOPS-9932)
+Related: [GITOPS-9932](https://redhat.atlassian.net/browse/GITOPS-9932), [GITOPS-9648](https://redhat.atlassian.net/browse/GITOPS-9648)
 
 The **Node.js base images used in Konflux do not include pnpm**.  
 Since hermetic builds cannot install tools from the network in the Dockerfile, pnpm is bootstrapped the same way as Yarn v1 in `prefetch/yarn/`:
@@ -8,6 +8,7 @@ Since hermetic builds cannot install tools from the network in the Dockerfile, p
 - Pin `pnpm` in `package.json` / `package-lock.json`
 - Prefetch with Hermeto `npm` during `prefetch-dependencies`
 - Install offline in the Dockerfile via `npm install --prefer-offline`
+- **Nexus npm cache** — set the registry URL in `prefetch/pnpm/.npmrc` (see `prefetch/npm/README.md`). The shared pipeline enables the Konflux package registry proxy during prefetch.
 
 Long term, pnpm should be bundled in `registry.access.redhat.com/ubi9/nodejs-22`.
 

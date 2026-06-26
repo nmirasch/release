@@ -13,6 +13,8 @@ metadata:
       (
         "sources/argo-rollouts".pathChanged() ||
         "clis/kubectl-argo-rollouts/***".pathChanged() ||
+        "prefetch/yarn/***".pathChanged() ||
+        "prefetch/npm/***".pathChanged() ||
         ".tekton/kubectl-argo-rollouts-cli-push.yaml".pathChanged() ||
         "BUILD".pathChanged() ||
         ".tekton/build-multi-platform-image.yaml".pathChanged() ||
@@ -61,4 +63,7 @@ spec:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
+  - name: netrc
+    secret:
+      secretName: nexus-npm-netrc
 status: {}

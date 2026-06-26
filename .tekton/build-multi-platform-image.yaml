@@ -104,6 +104,10 @@ spec:
     default: 'false'
     description: Enable cache proxy configuration
     type: string
+  - name: enable-package-registry-proxy
+    default: 'true'
+    description: Use the package registry proxy (Nexus) when prefetching dependencies
+    type: string
   - name: sast-target-dirs
     type: string
     default: .
@@ -188,6 +192,8 @@ spec:
       value: $(params.image-expires-after)
     - name: dev-package-managers
       value: 'true'
+    - name: enable-package-registry-proxy
+      value: $(params.enable-package-registry-proxy)
     runAfter:
     - generate-metadata
     taskRef:
