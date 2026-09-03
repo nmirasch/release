@@ -14,7 +14,7 @@
 #
 # ------------------------------------------------------------------------
 
-FROM registry.redhat.io/rhel8/go-toolset:1.24.6  AS builder
+FROM registry.redhat.io/rhel8/go-toolset:1.26.7-1788328948  AS builder
 USER root
 
 ENV LANG=en_US.utf8
