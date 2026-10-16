@@ -19,6 +19,8 @@ metadata:
         "sources/ssh-connect".pathChanged() ||
         "sources/tini".pathChanged() ||
         "containers/argocd/***".pathChanged() ||
+        "hack/ui-refs.sh".pathChanged() ||
+        "hack/generate-argo-ui-overlay-lockfiles.sh".pathChanged() ||
         ".tekton/argocd-push.yaml".pathChanged() ||
         "prefetch/rpms/ubi9/***".pathChanged() ||
         "prefetch/pnpm/***".pathChanged() ||
